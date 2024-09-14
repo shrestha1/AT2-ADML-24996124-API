@@ -7,9 +7,26 @@ Purpose:
 
 '''
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import pandas as pd
+import numpy as np
+import pickle
+import sklearn
+from datetime import datetime
 
 app = FastAPI()
+
+
+with open('../models/predictive/final.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+class PredictionRequest(BaseModel):
+    date: str
+    store_id: int
+    item_id: int
+
+
 
 @app.get("/")
 def read_root():
@@ -40,15 +57,78 @@ def forecast(date):
     '''
     return
 
+# @app.get("/sales/stores/items/")
+# def predict(request: PredictionRequest):
+#     '''
+#         Returns predicted sales for the following expected input parameters
+#         Args:
+#             date:
+#             store_id:
+#             item_id:
+
+#     '''
+
+#     # Convert the date string to a datetime object
+#     from datetime import datetime
+#     date = datetime.strptime(request.date, "%Y-%m-%d")
+
+#     try:
+#         date = pd.to_datetime(date)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+#     # Extract features from the date
+#     month = date.month
+#     week = date.isocalendar()[1]
+#     day_of_week = (date.weekday() + 1) % 7  # Adjust so Sunday = 0
+    
+#     # Prepare the input data for prediction
+#     input_data = np.array([[month, week, day_of_week, request.store_id, request.item_id]])
+
+#     # Predict the sales
+#     try:
+#         predicted_sell_price = model.predict(input_data)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error predicting sales: {str(e)}")
+
+#     # Return the prediction
+#     return {"prediction": predicted_sell_price[0]}
+
+    return 19.72
+
+# Define a function to simulate prediction
+def predict_sales(date: str, store_id: int, item_id: int) -> float:
+    date = datetime.strptime(date, "%Y-%m-%d")
+
+    try:
+        date = pd.to_datetime(date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    # Extract features from the date
+    month = date.month
+    week = date.isocalendar()[1]
+    day_of_week = (date.weekday() + 1) % 7  # Adjust so Sunday = 0
+    
+    # Prepare the input data for prediction
+    input_data = np.array([[month, week, day_of_week, store_id, item_id]])
+
+    # Predict the sales
+    try:
+        predicted_sell_price = round(model.predict(input_data)[0],2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error predicting sales: {str(e)}")
+
+    # Return the prediction
+    return {"prediction": predicted_sell_price}
+
+
+
 @app.get("/sales/stores/items/")
-def predict(date, store_id, item_id):
-    '''
-        Returns predicted sales for the following expected input parameters
-        Args:
-            date:
-            store_id:
-            item_id:
-
-    '''
-
-    return
+async def get_sales_prediction( date: str,
+    store_id: int,
+    item_id: int):
+    
+    
+    # Return the response as JSON
+    return predict_sales(date, store_id, item_id)
