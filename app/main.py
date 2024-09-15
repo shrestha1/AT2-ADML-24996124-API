@@ -11,17 +11,24 @@ import datetime
 
 st.title('ML Streamlit App')
 
-# fastapi_url = 'http://backend:8000/'
+# while testing with local system docker
+fastapi_url = 'http://backend:8000/'
+
+# while testing with deployed docker 
 # remote_fastapi_url = ''
-local_url = 'http://127.0.0.1:8000/'
+# fastapi_url = remote_fastapi_url
 
 
-fastapi_url = None
+## while test in local device without docker
+# local_url = 'http://127.0.0.1:8000/'
+# fastapi_url = local_url
 
-# if st.button('Test'):
-#    response = requests.get(local_url)
+st.header("Testing API")
+
+if st.button('Test'):
+   response = requests.get(fastapi_url)
    
-#    st.write(response.json())
+   st.write(response.json())
 
 
 ## Prediction
@@ -39,7 +46,7 @@ user_item_id = st.number_input("Input Item Number (1-3049)", min_value = 1, max_
 
 
 if st.button('Predict'):
-    url = 'http://127.0.0.1:8000/sales/stores/items/'
+    url = fastapi_url+'sales/stores/items/'
     # response = requests.get()
     params = {
         "date":user_date,
