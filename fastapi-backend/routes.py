@@ -14,11 +14,12 @@ import numpy as np
 import pickle
 import sklearn
 from datetime import datetime
+import utils
 
 app = FastAPI()
 
 
-with open('../models/predictive/final.pkl', 'rb') as file:
+with open('../models/predictive/final_model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 @app.get("/")
@@ -50,22 +51,11 @@ def forecast(date):
     '''
     return
 
-# Define a function to simulate prediction
-def predict_sales(date: str, store_id: int, item_id: int) -> float:
-    date = datetime.strptime(date, "%Y-%m-%d")
-
-    try:
-        date = pd.to_datetime(date)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
-    # Extract features from the date
-    month = date.month
-    week = date.isocalendar()[1]
-    day_of_week = (date.weekday() + 1) % 7  # Adjust so Sunday = 0
-    
+# function to sales prediction
+def predict_sales(date: str, store_id: str, item_id: str) -> float:
+      
     # Prepare the input data for prediction
-    input_data = np.array([[month, week, day_of_week, store_id, item_id]])
+    input_data = utils.extract_features(date, store_id, item_id)
 
     # Predict the sales
     try:
@@ -80,9 +70,8 @@ def predict_sales(date: str, store_id: int, item_id: int) -> float:
 
 @app.get("/sales/stores/items/")
 async def get_sales_prediction( date: str,
-    store_id: int,
-    item_id: int):
-    
+    store_id: str,
+    item_id: str):
     
     # Return the response as JSON
     return predict_sales(date, store_id, item_id)
