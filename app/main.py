@@ -38,20 +38,41 @@ user_date = st.date_input("Select Date",  value = datetime.date(2017, 1, 1),
                             min_value = datetime.date(2017, 1, 1),
                             max_value = datetime.date(2025, 1, 12)
                             )
-user_store_id = st.number_input("Input Store Number (1-10)", min_value = 1, max_value=10,
-                      value=5, step=1)
 
-user_item_id = st.number_input("Input Item Number (1-3049)", min_value = 1, max_value=3049,
-                      value=5, step=1)
+categories = {
+    "FOODS": ["001", "002", "003", "004", "005"],
+    "HOBBIES": ["001", "002", "003", "004", "005"],
+    "HOUSEHOLDS": ["001", "002", "003", "004", "005"]
+}
 
+
+
+
+# state_id
+state = st.selectbox("Select State", ["WI"])
+store = st.selectbox("Select Store", list(range(1,4)))
+
+
+# item_id
+# department
+department = st.selectbox("Select Department", list(range(1, 6)))
+
+# category 
+category = st.selectbox("Select Category", ["FOODS", "HOBBIES", "HOUSEHOLDS"])
+
+# item number
+item_number = st.selectbox("Select Item Number", categories[category])
+
+store_id = state+"_"+str(store)
+item_id = category+"_"+str(department)+"_"+ item_number
 
 if st.button('Predict'):
     url = fastapi_url+'sales/stores/items/'
     # response = requests.get()
     params = {
         "date":user_date,
-        "store_id":user_store_id,
-        "item_id":user_item_id
+        "store_id":store_id,
+        "item_id":item_id
     }
    # Make the GET request with the parameters
     response = requests.get(url, params=params)
