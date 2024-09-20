@@ -9,7 +9,7 @@ services:
     networks:
       - app-network
     volumes:
-      - ./models/predictive:/models/predictive
+      - ./models:/models
   frontend:
     build: 
       context: ./app
