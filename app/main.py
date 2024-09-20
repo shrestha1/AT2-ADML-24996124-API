@@ -8,6 +8,8 @@ Purpose:
 import streamlit as st
 import requests
 import datetime
+import data
+
 
 st.title('ML Streamlit App')
 
@@ -23,6 +25,7 @@ fastapi_url = 'http://backend:8000/'
 # local_url = 'http://127.0.0.1:8000/'
 # fastapi_url = local_url
 
+
 st.header("Testing API")
 
 if st.button('Test'):
@@ -30,41 +33,55 @@ if st.button('Test'):
    
    st.write(response.json())
 
+## Forecasting 
+##
+st.header("Forecasting the total Sales of 7 days from Selected Date onwards.")
+
+user_date = st.date_input("Select Date",  value = datetime.date(2016, 1, 1),
+                            min_value = datetime.date(2016, 1, 1),
+                            max_value = datetime.date(2025, 1, 12)
+                            )
+if st.button('Forecast'):
+    url = fastapi_url+'sales/national/'
+    # response = requests.get()
+    params = {
+        "date":user_date,
+    }
+    response = requests.get(url, params=params)
+    st.write(response.json())
+    
 
 ## Prediction
 ## 
 st.header("Prediction of the Sales of Item in a Store for Selected Date. ")
 user_date = st.date_input("Select Date",  value = datetime.date(2017, 1, 1),
-                            min_value = datetime.date(2017, 1, 1),
+                            min_value = datetime.date(2016, 1, 1),
                             max_value = datetime.date(2025, 1, 12)
                             )
 
-categories = {
-    "FOODS": ["001", "002", "003", "004", "005"],
-    "HOBBIES": ["001", "002", "003", "004", "005"],
-    "HOUSEHOLDS": ["001", "002", "003", "004", "005"]
-}
-
-
-
+state_list = list(data.state_store.keys())
 
 # state_id
-state = st.selectbox("Select State", ["WI"])
-store = st.selectbox("Select Store", list(range(1,4)))
+state = st.selectbox("Select State", state_list)
+store = st.selectbox("Select Store Number", data.state_store[state])
 
 
 # item_id
 # department
-department = st.selectbox("Select Department", list(range(1, 6)))
+cat_list = list(data.department.keys() )
 
 # category 
-category = st.selectbox("Select Category", ["FOODS", "HOBBIES", "HOUSEHOLDS"])
+category = st.selectbox("Select Category", cat_list)
 
+department = st.selectbox("Select Department", data.department[category])
+
+items_list = data.categories_department[category][department]
 # item number
-item_number = st.selectbox("Select Item Number", categories[category])
+item_number = st.selectbox("Select Item Number", items_list)
 
 store_id = state+"_"+str(store)
-item_id = category+"_"+str(department)+"_"+ item_number
+item_id = category+"_"+str(department)+"_"+ "{:03}".format(item_number)
+
 
 if st.button('Predict'):
     url = fastapi_url+'sales/stores/items/'
