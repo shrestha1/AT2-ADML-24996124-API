@@ -48,12 +48,14 @@ user_date = st.date_input("Select Date",  value = datetime.date(2015, 4, 12),
                             max_value = datetime.date(2016, 12, 29)
                             )
 if st.button('Forecast'):
+    headers = {'Content-Type': 'application/json'}
+
     url = fastapi_url+'sales/national/'
     # response = requests.get()
-    params = {
-        "date":user_date,
+    json_data = {
+        "date":user_date.strftime('%Y-%m-%d'),
     }
-    response = requests.get(url, params=params)
+    response = requests.get(url, json=json_data, headers=headers)
     st.write(response.json())
     
 
@@ -90,17 +92,19 @@ item_id = category+"_"+str(department)+"_"+ "{:03}".format(item_number)
 
 
 if st.button('Predict'):
+    headers = {'Content-Type': 'application/json'}
+
     url = fastapi_url+'sales/stores/items/'
     # response = requests.get()
-    params = {
-        "date":user_date,
+    json_data = {
+        "date":user_date.strftime('%Y-%m-%d'),
         "store_id":store_id,
         "item_id":item_id
     }
    # Make the GET request with the parameters
-    response = requests.get(url, params=params)
+    response = requests.get(url, json=json_data, headers=headers)
     st.write("Json Data Sent:")
-    st.write(params)
+    st.write(json_data)
     st.write("Json Response obtained From API:")
     st.write(response.json())
 
