@@ -7,7 +7,7 @@ Purpose:
 
 '''
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -16,7 +16,8 @@ import sklearn
 from datetime import datetime
 import utils
 import re
-
+import gzip
+import json
 
 app = FastAPI()
 
@@ -25,21 +26,46 @@ def validate_date_format(date_str: str) -> bool:
     return bool(re.match(r'^\d{4}-\d{2}-\d{2}$', date_str))
 
 
-with open('../models/predictive/final_model.pkl', 'rb') as file:
-    prediction_model = pickle.load(file)
+with gzip.open('./models/predictive/compressed_decision_tree_final_tuned.pkl', 'rb') as f:
+    p = pickle.Unpickler(f)
+    prediction_model = p.load()
 
-with open('../models/forecasting/final_model.pkl', 'rb') as file:
+# with open('./models/predictive/compressed_decision_tree_final_tuned.pkl', 'rb') as file:
+#     prediction_model = pickle.load(file)
+
+with open('./models/forecasting/prophet_forecast_seasonality_holiday.pkl', 'rb') as file:
     np.float_ = np.float64
     forecast_model = pickle.load(file)
 
 @app.get("/")
 def read_root():
     data = {
-        "description": "This is a FastAPI application.",
+        "description": "This application can be used for two purpose: Prediction of sales of an item in particular store and Forecasting the total sales of overall store.",
         "endpoints": [
-            {"path": "/items/{item_id}", "method": "GET", "description": "Get item by ID"},
-            {"path": "/items", "method": "POST", "description": "Create a new item"},
-            # Add more endpoints as needed
+            {"path": "/", "method": "GET", "description": "Get Overview of the project and API Documentation"},
+            {"path": "/health/", "method": "GET", "description": "Checking the status of the API."},
+            {"path": "/sales/national/", "method": "GET", 
+             "description": "Returns the forcasted sales of 7 days from the selected date.", 
+             "params": "Takes date as an input to the and provides forecasted sales each of 7 days onwards.", 
+             "expected_output": {
+                            "2015-04-12":112668.73,
+                            "2015-04-13":112698.91,
+                            "2015-04-14":112729.08,
+                            "2015-04-15":112759.25,
+                            "2015-04-16":112789.43,
+                            "2015-04-17":112819.6,
+                            "2015-04-18":112849.77}
+        },
+        {"path": "/sales/national/", "method": "GET", 
+             "description": "Returns the forcasted sales of 7 days from the selected date.", 
+             "params": "From UI Date, Statem, Store Number, Category, Department id and Item Number is taken. From these, Json value is generated",
+             "API request": {
+                                "date":"datetime.date(2015, 4, 12)",
+                                "store_id":"CA_1",
+                                "item_id":"HOUSEHOLD_1_053"
+                            }, 
+             "expected_output": {"prediction":10.4}
+        },
         ]
     }
     return data
@@ -48,17 +74,20 @@ def read_root():
 @app.get("/health/")
 def read_health():
     data = {
-
+        "Health": "APP is Runnning..."
     }
-    return
+    return data
 
 
 @app.get("/sales/national/")
-def forecast(date:str):
+async def forecast(request:Request):
     '''
         Returns next 7 days forecasted sales 
 
     '''
+    data = await request.json()
+    date = data['date']
+
     if not validate_date_format(date):
         raise HTTPException(status_code=400, detail="Date must be in 'yyyy-mm-dd' format")
     
@@ -94,9 +123,11 @@ def predict_sales(date: str, store_id: str, item_id: str) -> float:
 
 
 @app.get("/sales/stores/items/")
-async def get_sales_prediction( date: str,
-    store_id: str,
-    item_id: str):
-    
-    # Return the response as JSON
+async def get_sales_prediction(request: Request):
+    data = await request.json()
+    date = data['date']
+    store_id = data['store_id']
+    item_id = data['item_id']
+    # print(data)
+    # # Return the response as JSON
     return predict_sales(date, store_id, item_id)
