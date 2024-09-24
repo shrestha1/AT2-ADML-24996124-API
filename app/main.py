@@ -26,20 +26,26 @@ fastapi_url = 'http://backend:8000/'
 # fastapi_url = local_url
 
 
-st.header("Testing API")
+st.header("Project Overview")
 
-if st.button('Test'):
+if st.button('Overview'):
    response = requests.get(fastapi_url)
    
    st.write(response.json())
 
+
+if st.button('Health'):
+   response = requests.get(fastapi_url+"/health/")
+   
+   st.write(response.json())
+ 
 ## Forecasting 
 ##
 st.header("Forecasting the total Sales of 7 days from Selected Date onwards.")
 
-user_date = st.date_input("Select Date",  value = datetime.date(2016, 1, 1),
-                            min_value = datetime.date(2016, 1, 1),
-                            max_value = datetime.date(2025, 1, 12)
+user_date = st.date_input("Select Date",  value = datetime.date(2015, 4, 12),
+                            min_value = datetime.date(2015, 1, 1),
+                            max_value = datetime.date(2016, 12, 29)
                             )
 if st.button('Forecast'):
     url = fastapi_url+'sales/national/'
@@ -54,8 +60,8 @@ if st.button('Forecast'):
 ## Prediction
 ## 
 st.header("Prediction of the Sales of Item in a Store for Selected Date. ")
-user_date = st.date_input("Select Date",  value = datetime.date(2017, 1, 1),
-                            min_value = datetime.date(2016, 1, 1),
+user_date = st.date_input("Select Date",  value = datetime.date(2015, 4, 12),
+                            min_value = datetime.date(2015, 1, 1),
                             max_value = datetime.date(2025, 1, 12)
                             )
 
@@ -93,6 +99,9 @@ if st.button('Predict'):
     }
    # Make the GET request with the parameters
     response = requests.get(url, params=params)
+    st.write("Json Data Sent:")
+    st.write(params)
+    st.write("Json Response obtained From API:")
     st.write(response.json())
 
     # Check if the response is successful
