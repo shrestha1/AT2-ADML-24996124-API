@@ -15,7 +15,6 @@ from fastapi import HTTPException
 from datetime import datetime
 import pickle
 
-# ['month', 'weekday', 'state', 'store_num', 'category', 'department', 'item']
 
 def extract_date_feature(date):
     date = datetime.strptime(date, "%Y-%m-%d")
@@ -54,11 +53,11 @@ def extract_features(date, store_id, item_id):
         'month': [month],
         'day': [day],
         'weekday': [weekday],
-        'state': [state],
         'store_num': [store_num],
         'department': [department],
-        'category': [category],
-        'item': [item]
+        'item': [item],
+        'state': [state],
+        'category': [category]
     })
     
     with open('./models/predictive/pipeline_ohe.pkl', 'rb') as file:

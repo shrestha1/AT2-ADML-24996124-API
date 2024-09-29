@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# COPY ../models /app/models
 RUN pip install -r requirements.txt
 
 COPY . .
